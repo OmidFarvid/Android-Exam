@@ -6,10 +6,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.example.omid.firstexam.POJO.Country;
 import com.google.gson.Gson;
@@ -24,10 +22,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class MainActivity extends AppCompatActivity{
 
     Button btnGetCountries;
-    SearchView schCountry;
     RestInterface CountryService;
 
     private RecyclerView recyclerView;
@@ -36,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     ProgressDialog progressDoalog;
 
     public static CountryDB countryDB;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,18 +41,13 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         progressDoalog = new ProgressDialog(MainActivity.this);
 
-        countryDB = Room.databaseBuilder(getApplicationContext(),CountryDB.class,"CountryDB").allowMainThreadQueries().build();
+        countryDB = Room.databaseBuilder(getApplicationContext(), CountryDB.class, "CountryDB").allowMainThreadQueries().build();
 
         CountryService = Common.getRestInterface();
-        btnGetCountries = (Button)findViewById(R.id.btnGetCountries);
-        schCountry = (SearchView) findViewById(R.id.schCountry);
+        btnGetCountries = (Button) findViewById(R.id.btnGetCountries);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-
-
-
 
         btnGetCountries.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     }
 
 
-
-
     private void getCountries() {
         progressDoalog.setTitle("Loading");
         progressDoalog.setMessage("Load countries is in progress");
@@ -78,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response1) {
-                String r="";
+                String r = "";
                 List<Country> lstCountries;
                 try {
                     r = response1.body().string();
@@ -90,13 +81,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
                 lstCountries = Arrays.asList(gson.fromJson(r, Country[].class));
                 MainActivity.countryDB.dao().deleteCountries();
-                for(int i=0;i<lstCountries.size();i++)
-                {
+                for (int i = 0; i < lstCountries.size(); i++) {
                     Country newCountry = lstCountries.get(i);
                     MainActivity.countryDB.dao().addCountry(newCountry);
                 }
                 lstCountries = MainActivity.countryDB.dao().getCountries();
-                adapter = new CountriesAdapter(lstCountries,getBaseContext());
+                adapter = new CountriesAdapter(lstCountries, getBaseContext());
                 recyclerView.setAdapter(adapter);
                 progressDoalog.hide();
             }
@@ -105,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 List<Country> lstCountries;
                 lstCountries = MainActivity.countryDB.dao().getCountries();
-                adapter = new CountriesAdapter(lstCountries,getBaseContext());
+                adapter = new CountriesAdapter(lstCountries, getBaseContext());
                 recyclerView.setAdapter(adapter);
                 progressDoalog.hide();
             }
@@ -113,19 +103,4 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         });
     }
 
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        Toast.makeText(getBaseContext(),"Search",Toast.LENGTH_LONG);
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        return false;
-    }
 }
